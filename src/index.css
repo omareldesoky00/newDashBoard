@@ -1,0 +1,409 @@
+:root {
+  --bg: #0b1220;
+  --panel: #101a2c;
+  --panel-border: #1e2c45;
+  --panel-soft: #16213680;
+  --text: #eef2fa;
+  --muted: #7c8aa8;
+  --orange: #f5941f;
+  --orange-soft: #f5941f22;
+  --blue: #3b82f6;
+  --blue-soft: #3b82f622;
+  --green: #22c55e;
+  --green-soft: #22c55e22;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(circle at 20% 0%, #101c33 0%, #070c17 60%), var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.dashboard {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card {
+  background: linear-gradient(180deg, #111c31 0%, #0d1626 100%);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f9a53a, #ea7c1c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 6px 18px #f5941f44;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.header-title p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.header-right .clock-big {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green);
+  font-weight: 600;
+  font-size: 13px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(34,197,94,.7);
+  animation: pulse 1.6s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
+  70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+
+/* ---------- Grid layout ---------- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Route panel ---------- */
+.route-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.route-header h2 { margin: 0; font-size: 16px; }
+.route-header span { color: var(--muted); font-size: 13px; }
+
+.progress-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+
+.stop-list { position: relative; padding-left: 6px; }
+.stop {
+  position: relative;
+  padding-left: 26px;
+  padding-bottom: 26px;
+}
+.stop:last-child { padding-bottom: 0; }
+.stop::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #24314b;
+  border: 3px solid #3a4a6b;
+}
+.stop::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 18px;
+  width: 2px;
+  height: calc(100% - 10px);
+  background: #24314b;
+}
+.stop:last-child::after { display: none; }
+.stop.active::before {
+  background: var(--orange);
+  border-color: var(--orange);
+  box-shadow: 0 0 0 4px #f5941f22;
+}
+.stop-title { font-weight: 700; font-size: 14px; }
+.stop-sub { font-size: 12px; color: var(--muted); }
+.stop-sub.current { color: var(--orange); font-weight: 600; }
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+.mini-stat {
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mini-stat .val { font-weight: 700; }
+
+.eta-box {
+  margin-top: 12px;
+  background: var(--orange-soft);
+  border: 1px solid #f5941f44;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.eta-box .label { font-size: 12px; color: var(--muted); }
+.eta-box .value { font-size: 22px; font-weight: 800; color: var(--orange); }
+
+/* ---------- Map ---------- */
+.map-card { padding: 0; overflow: hidden; }
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px 0;
+}
+.map-header h2 { margin: 0; font-size: 16px; }
+.map-header span { font-size: 13px; color: var(--muted); }
+
+.map-canvas-wrap {
+  position: relative;
+  margin: 14px 20px 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  background: #0a1220;
+}
+
+.map-legend {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  background: #0c1728e6;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+}
+.legend-row { display: flex; align-items: center; gap: 8px; }
+.legend-swatch { width: 18px; height: 3px; border-radius: 2px; }
+
+.map-controls {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.map-controls button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  background: #0c1728e6;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.compass {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #0c1728e6;
+  border: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.city-label {
+  fill: var(--muted);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  letter-spacing: 0.02em;
+}
+.city-label.strong { fill: #cfd8ea; font-weight: 700; font-size: 11px; }
+
+/* ---------- Side panels (weather/time) ---------- */
+.side-stack { display: flex; flex-direction: column; gap: 18px; }
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.weather-temp {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--orange);
+  line-height: 1;
+}
+.weather-loc { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+.weather-rows { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.weather-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.weather-row .val { font-weight: 700; }
+
+.clock-time {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 700;
+}
+.clock-date { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.tz-pill {
+  margin-top: 14px;
+  background: var(--orange-soft);
+  color: var(--orange);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ---------- Fleet status ---------- */
+.fleet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.fleet-header h2 { margin: 0; font-size: 18px; }
+.fleet-header span { color: var(--muted); font-size: 13px; }
+
+.fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .fleet-grid { grid-template-columns: 1fr; }
+}
+
+.fleet-item {
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.fleet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fleet-id { display: flex; align-items: center; gap: 10px; }
+.fleet-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.fleet-name { font-weight: 700; font-size: 14px; }
+.fleet-driver { font-size: 12px; color: var(--muted); }
+.status-pill {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fleet-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sparkline { height: 26px; }
+
+/* Bus icon color variants */
+.icon-orange { background: linear-gradient(135deg,#f9a53a,#ea7c1c); }
+.icon-blue { background: linear-gradient(135deg,#60a5fa,#2563eb); }
+.icon-green { background: linear-gradient(135deg,#4ade80,#16a34a); }
