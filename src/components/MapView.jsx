@@ -1,84 +1,141 @@
-import { useRef } from 'react'
-import { useAnimatedBus } from '../hooks/useAnimatedBus.js'
+import { STOPS, BUSES } from '../data/compound.js'
+import { legPathD } from '../utils/curve.js'
+import { useBusSchedule } from '../hooks/useBusSchedule.js'
+import { fmtClock } from '../utils/curve.js'
+import { BUS_ICON_PATH } from './icons/BusIcon.jsx'
 
-// Route paths (stylised, not real GPS data) drawn on a 1000x560 canvas.
-const ROUTE_101 = 'M 460 300 C 520 260, 560 200, 600 170 S 700 120, 760 90' // Noor -> Rehab
-const ROUTE_102 = 'M 460 300 C 540 310, 620 340, 680 380 S 760 420, 800 430' // Noor -> Madinaty
-const ROUTE_103 = 'M 460 300 C 380 320, 300 340, 250 360 S 300 420, 420 430 S 700 440, 800 430' // Loop
-
-function BusMarker({ pathRef, color, label, durationMs }) {
-  const { x, y, angle } = useAnimatedBus(pathRef, durationMs)
+function RouteLines({ bus }) {
+  const n = bus.route.length
   return (
-    <g transform={`translate(${x}, ${y}) rotate(${angle})`}>
-      <circle r="13" fill={color} stroke="#0b1220" strokeWidth="3" />
-      <text
-        x="0"
-        y="1"
-        transform={`rotate(${-angle})`}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize="12"
+    <>
+      {bus.route.map((stopKey, i) => {
+        const from = STOPS[stopKey]
+        const to = STOPS[bus.route[(i + 1) % n]]
+        const d = legPathD(from, to, bus.bend[i])
+        return (
+          <g key={`${bus.id}-${i}`}>
+            {/* Dark casing gives the lane contrast against the grid, like a real road */}
+            <path d={d} fill="none" stroke="#03060d" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+            <path
+              d={d}
+              fill="none"
+              stroke={bus.color}
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="route-glow"
+              style={{ filter: `drop-shadow(0 0 7px ${bus.color}cc)` }}
+            />
+          </g>
+        )
+      })}
+    </>
+  )
+}
+
+function BusMarker({ bus }) {
+  const state = useBusSchedule(bus)
+  const { x, y } = state.position
+  const isWaiting = state.type === 'wait'
+
+  return (
+    <g transform={`translate(${x}, ${y})`}>
+      {isWaiting && (
+        <circle r="22" fill={bus.color} opacity="0.16" className="wait-pulse" />
+      )}
+      <rect
+        x="-17"
+        y="-17"
+        width="34"
+        height="34"
+        rx="11"
         fill="#0b1220"
-      >
-        🚌
-      </text>
+        stroke={bus.color}
+        strokeWidth="3"
+        style={{ filter: `drop-shadow(0 2px 6px #000a)` }}
+      />
+      <g transform="translate(-11, -11)">
+        <path d={BUS_ICON_PATH} transform="scale(0.92)" fill="#eef2fa" />
+      </g>
+
+      {/* Countdown bubble */}
+      <g transform="translate(0,-32)">
+        <rect
+          x={-24}
+          y={-13}
+          width="48"
+          height="18"
+          rx="9"
+          fill="#0c1728"
+          stroke={bus.color}
+          strokeWidth="1.4"
+        />
+        <text x="0" y="0.5" textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="#eef2fa" fontFamily="JetBrains Mono, monospace">
+          {fmtClock(state.remaining)}
+        </text>
+      </g>
     </g>
   )
 }
 
-export default function MapView() {
-  const path101Ref = useRef(null)
-  const path102Ref = useRef(null)
-  const path103Ref = useRef(null)
+function StopMarkers() {
+  return Object.values(STOPS).map((s) => (
+    <g key={s.key} transform={`translate(${s.x}, ${s.y})`}>
+      <circle r="5" fill="#0a1220" stroke="#3a4a6b" strokeWidth="2" />
+    </g>
+  ))
+}
 
+function StopLabels() {
+  return Object.values(STOPS).map((s) => (
+    <text
+      key={s.key}
+      x={s.x}
+      y={s.y - 14}
+      className="city-label strong"
+      textAnchor="middle"
+    >
+      {s.name}
+    </text>
+  ))
+}
+
+export default function MapView() {
   return (
     <div className="map-card card">
       <div className="map-header">
         <h2>Live Route Map</h2>
-        <span>Noor City Transportation</span>
+        <span>Noor Compound Transportation</span>
       </div>
 
       <div className="map-canvas-wrap">
-        <svg viewBox="0 0 1000 560" width="100%" height="480" style={{ display: 'block' }}>
+        <svg viewBox="0 0 700 1000" width="100%" style={{ display: 'block', aspectRatio: '7 / 10' }}>
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
               <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#152238" strokeWidth="1" />
             </pattern>
           </defs>
-          <rect width="1000" height="560" fill="#0a1220" />
-          <rect width="1000" height="560" fill="url(#grid)" />
+          <rect width="700" height="1000" fill="#0a1220" />
+          <rect width="700" height="1000" fill="url(#grid)" />
 
           {/* Faint background road network for flavor */}
-          <g stroke="#223351" strokeWidth="2" fill="none" opacity="0.7">
-            <path d="M 0 200 Q 300 150 500 220 T 1000 180" />
-            <path d="M 0 380 Q 300 420 500 360 T 1000 400" />
-            <path d="M 150 0 Q 200 250 180 560" />
-            <path d="M 850 0 Q 800 250 830 560" />
-            <path d="M 480 0 L 480 560" opacity="0.4" />
+          <g stroke="#223351" strokeWidth="2" fill="none" opacity="0.55">
+            <path d="M 0 357 Q 210 268 350 393 T 700 321" />
+            <path d="M 0 679 Q 210 750 350 643 T 700 714" />
+            <path d="M 105 0 Q 140 446 126 1000" />
+            <path d="M 595 0 Q 560 446 581 1000" />
           </g>
 
-          {/* Route lines */}
-          <path ref={path101Ref} d={ROUTE_101} fill="none" stroke="#f5941f" strokeWidth="4" strokeLinecap="round" />
-          <path ref={path102Ref} d={ROUTE_102} fill="none" stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" />
-          <path ref={path103Ref} d={ROUTE_103} fill="none" stroke="#22c55e" strokeWidth="4" strokeLinecap="round" />
+          {BUSES.map((bus) => (
+            <RouteLines key={bus.id} bus={bus} />
+          ))}
 
-          {/* City labels */}
-          <text x="700" y="70" className="city-label">New Cairo City</text>
-          <text x="720" y="100" className="city-label strong">EL REHAB CITY</text>
-          <text x="400" y="285" className="city-label strong">NOOR CITY</text>
-          <text x="180" y="380" className="city-label strong">— origin —</text>
-          <text x="810" y="455" className="city-label strong">MADINATY</text>
+          <StopMarkers />
+          <StopLabels />
 
-          {/* Hub marker (current location) */}
-          <g transform="translate(460,300)">
-            <circle r="10" fill="#0a1220" stroke="#3b82f6" strokeWidth="4" />
-            <circle r="4" fill="#3b82f6" />
-          </g>
-
-          {/* Animated bus markers, each with its own slow speed */}
-          <BusMarker pathRef={path101Ref} color="#f5941f" label="101" durationMs={16000} />
-          <BusMarker pathRef={path102Ref} color="#3b82f6" label="102" durationMs={19000} />
-          <BusMarker pathRef={path103Ref} color="#22c55e" label="103" durationMs={24000} />
+          {BUSES.map((bus) => (
+            <BusMarker key={bus.id} bus={bus} />
+          ))}
         </svg>
 
         <div className="map-controls">
@@ -88,18 +145,12 @@ export default function MapView() {
         </div>
 
         <div className="map-legend">
-          <div className="legend-row">
-            <span className="legend-swatch" style={{ background: '#f5941f' }} />
-            Bus 101 (Rehab)
-          </div>
-          <div className="legend-row">
-            <span className="legend-swatch" style={{ background: '#3b82f6' }} />
-            Bus 102 (Madinaty)
-          </div>
-          <div className="legend-row">
-            <span className="legend-swatch" style={{ background: '#22c55e' }} />
-            Bus 103 (Loop)
-          </div>
+          {BUSES.map((bus) => (
+            <div className="legend-row" key={bus.id}>
+              <span className="legend-swatch" style={{ background: bus.color }} />
+              {bus.label} — {bus.driver}
+            </div>
+          ))}
         </div>
 
         <div className="compass">N</div>

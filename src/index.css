@@ -20,6 +20,7 @@
 html, body, #root {
   height: 100%;
   margin: 0;
+  overflow: hidden;
 }
 
 body {
@@ -29,13 +30,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Dedicated portrait street-display panel — fills its screen, no
+   horizontal centering / max-width needed like a normal responsive site. */
 .dashboard {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 20px;
+  width: 100%;
+  height: 100vh;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 .card {
@@ -122,16 +125,12 @@ body {
   100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
 }
 
-/* ---------- Grid layout ---------- */
+/* ---------- Grid layout ----------
+   Portrait panel: everything stacks in a single vertical column. */
 .main-grid {
-  display: grid;
-  grid-template-columns: 300px 1fr 300px;
+  display: flex;
+  flex-direction: column;
   gap: 18px;
-  align-items: start;
-}
-
-@media (max-width: 1100px) {
-  .main-grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- Route panel ---------- */
@@ -293,7 +292,7 @@ body {
 .city-label.strong { fill: #cfd8ea; font-weight: 700; font-size: 11px; }
 
 /* ---------- Side panels (weather/time) ---------- */
-.side-stack { display: flex; flex-direction: column; gap: 18px; }
+.side-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .panel-title {
   display: flex;
   align-items: center;
@@ -407,3 +406,151 @@ body {
 .icon-orange { background: linear-gradient(135deg,#f9a53a,#ea7c1c); }
 .icon-blue { background: linear-gradient(135deg,#60a5fa,#2563eb); }
 .icon-green { background: linear-gradient(135deg,#4ade80,#16a34a); }
+
+/* ---------- Swipe container ----------
+   Unattended street display: pages auto-advance every autoMs and slide
+   vertically (portrait panel), with no touch/click controls. */
+.swipe-root {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+.swipe-track {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.swipe-page {
+  min-height: 100%;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.swipe-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+.dot-static {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #2a3a58;
+  transition: all 0.25s ease;
+}
+.dot-static.active {
+  background: var(--orange);
+  width: 22px;
+  border-radius: 5px;
+}
+
+/* ---------- Human touch line (weather panel) ---------- */
+.human-touch {
+  margin-top: 16px;
+  border-top: 1px dashed var(--panel-border);
+  padding-top: 12px;
+}
+.human-touch-greeting { font-weight: 700; font-size: 13px; }
+.human-touch-tip { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+.eta-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ---------- Route glow / waiting pulse on the map ---------- */
+.route-glow {
+  stroke-dasharray: 10 8;
+  animation: routeFlow 1.4s linear infinite;
+}
+@keyframes routeFlow {
+  to { stroke-dashoffset: -36; }
+}
+.wait-pulse {
+  animation: waitPulse 1.6s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes waitPulse {
+  0% { r: 12; opacity: 0.35; }
+  70% { r: 22; opacity: 0; }
+  100% { r: 22; opacity: 0; }
+}
+
+/* ---------- Arrivals board ---------- */
+.arrivals-main { display: flex; flex-direction: column; }
+.arrivals-list { display: flex; flex-direction: column; gap: 12px; }
+
+.arrival-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--panel-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.arrival-left { display: flex; align-items: center; gap: 12px; }
+.arrival-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: #0b1220;
+  flex-shrink: 0;
+}
+.arrival-headline { font-weight: 700; font-size: 14px; }
+.arrival-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.arrival-right { text-align: right; min-width: 130px; }
+.arrival-countdown {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+.arrival-bar-track {
+  width: 130px;
+  height: 5px;
+  border-radius: 3px;
+  background: #1c2946;
+  overflow: hidden;
+}
+.arrival-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.tone-urgent .arrival-headline { color: var(--orange); }
+.tone-soon .arrival-headline { color: #facc15; }
+
+/* ---------- Video page ---------- */
+.video-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 4px;
+}
+.video-frame-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  background: #000;
+}
+.video-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}

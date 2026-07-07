@@ -1,7 +1,11 @@
 import { useWeather } from '../hooks/useWeather.js'
+import { useCairoClock } from '../hooks/useCairoClock.js'
+import { getHumanTouch } from '../utils/humanTouch.js'
 
 export default function WeatherPanel() {
   const { data, loading, error } = useWeather()
+  const { raw } = useCairoClock()
+  const { greeting, tip } = getHumanTouch(raw, data)
 
   return (
     <div className="card">
@@ -24,6 +28,11 @@ export default function WeatherPanel() {
               <span>🌬️ Wind</span>
               <span className="val">{data.wind} km/h</span>
             </div>
+          </div>
+
+          <div className="human-touch">
+            <div className="human-touch-greeting">{greeting} 👋</div>
+            <div className="human-touch-tip">{tip}</div>
           </div>
         </>
       )}
