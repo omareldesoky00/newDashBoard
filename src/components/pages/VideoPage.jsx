@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const VIDEO_SRC = '/videos/announcement.mp4'
+const VIDEO_SRC = `${import.meta.env.BASE_URL}videos/announcement.mp4`
 
 export default function VideoPage({ active }) {
   // Bumping playKey forces the video to remount, so it always
