@@ -2,16 +2,26 @@
 // the map canvas, which is 700 x 1000 units (portrait, for a vertical
 // street display panel).
 
+// `type` drives which little building/place icon is drawn on the map
+// for that stop (see BUILDING_ICONS in MapView.jsx).
 export const STOPS = {
-  mainGate: { key: 'mainGate', name: 'Main Gate', x: 322, y: 536 },
-  clubhouse: { key: 'clubhouse', name: 'Clubhouse', x: 532, y: 161 },
-  centralSquare: { key: 'centralSquare', name: 'Central Square', x: 434, y: 339 },
-  lakePlaza: { key: 'lakePlaza', name: 'Lake Plaza', x: 560, y: 768 },
-  marinaWalk: { key: 'marinaWalk', name: 'Marina Walk', x: 294, y: 821 },
-  sportsClub: { key: 'sportsClub', name: 'Sports Club', x: 441, y: 857 },
-  schoolZone: { key: 'schoolZone', name: 'School Zone', x: 175, y: 643 },
-  residentialB: { key: 'residentialB', name: 'Residential B', x: 105, y: 304 },
+  mainGate: { key: 'mainGate', name: 'Main Gate', x: 322, y: 536, type: 'gate' },
+  clubhouse: { key: 'clubhouse', name: 'Clubhouse', x: 532, y: 161, type: 'clubhouse' },
+  centralSquare: { key: 'centralSquare', name: 'Central Square', x: 434, y: 339, type: 'plain' },
+  lakePlaza: { key: 'lakePlaza', name: 'Lake Plaza', x: 560, y: 768, type: 'lake' },
+  marinaWalk: { key: 'marinaWalk', name: 'Marina Walk', x: 294, y: 821, type: 'park' },
+  sportsClub: { key: 'sportsClub', name: 'Sports Club', x: 441, y: 857, type: 'sports' },
+  schoolZone: { key: 'schoolZone', name: 'School Zone', x: 175, y: 643, type: 'school' },
+  residentialB: { key: 'residentialB', name: 'Residential B', x: 105, y: 304, type: 'plain' },
 }
+
+// Purely decorative points of interest — not on any bus route — so the
+// map reads like an actual place inside Noor City rather than just a
+// route diagram.
+export const LANDMARKS = [
+  { key: 'noorMall', name: 'Noor Mall', x: 645, y: 490, type: 'mall' },
+  { key: 'noorClub', name: 'Noor Club', x: 180, y: 95, type: 'club' },
+]
 
 // Each bus loops forever through: WAIT at route[0] -> MOVE to route[1] ->
 // WAIT at route[1] -> MOVE to route[2] -> ... -> MOVE back to route[0].
@@ -57,7 +67,7 @@ export const BUSES = [
   {
     id: '104',
     label: 'Bus 104',
-    driver: 'Sara Youssef',
+    driver: 'Youssef Sayed',
     color: '#a855f7',
     route: ['clubhouse', 'lakePlaza', 'residentialB'],
     waitSec: [3 * 60, 3 * 60, 2 * 60],
@@ -73,7 +83,10 @@ export const BUSES = [
     route: ['schoolZone', 'centralSquare', 'sportsClub'],
     waitSec: [2 * 60, 3 * 60, 4 * 60],
     travelSec: [6 * 60, 5 * 60, 8 * 60],
-    bend: [-52, 60, -44],
+    // Middle leg (centralSquare->sportsClub) shares its stops with bus
+    // 102's route, so it's bent hard the opposite way to keep the two
+    // lines from riding on top of each other.
+    bend: [-52, -110, -44],
     phaseOffsetSec: 90,
   },
 ]

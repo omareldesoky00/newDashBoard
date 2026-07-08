@@ -1,8 +1,74 @@
-import { STOPS, BUSES } from '../data/compound.js'
+import { STOPS, LANDMARKS, BUSES } from '../data/compound.js'
 import { legPathD } from '../utils/curve.js'
 import { useBusSchedule } from '../hooks/useBusSchedule.js'
 import { fmtClock } from '../utils/curve.js'
 import { BUS_ICON_PATH } from './icons/BusIcon.jsx'
+
+// Small line-art glyphs so stops/landmarks read as actual places
+// (a gate, a clubhouse, a school...) instead of bare dots on a diagram.
+function PlaceIcon({ type, color = '#9fb0d1' }) {
+  switch (type) {
+    case 'gate':
+      return (
+        <g fill={color}>
+          <rect x="-9" y="-9" width="4" height="16" rx="1" />
+          <rect x="5" y="-9" width="4" height="16" rx="1" />
+          <rect x="-10" y="-12" width="20" height="3.5" rx="1.5" />
+        </g>
+      )
+    case 'clubhouse':
+      return (
+        <g fill={color}>
+          <path d="M -10 2 L 0 -10 L 10 2 Z" />
+          <rect x="-7.5" y="2" width="15" height="9" />
+        </g>
+      )
+    case 'school':
+      return (
+        <g fill={color}>
+          <path d="M -9 -1 L 0 -10 L 9 -1 Z" />
+          <rect x="-8" y="-1" width="16" height="10" />
+          <rect x="0.5" y="-15" width="2.5" height="6" />
+          <path d="M 3 -15 L 9 -12.5 L 3 -10 Z" />
+        </g>
+      )
+    case 'sports':
+      return (
+        <g fill={color}>
+          <path d="M -7 -9 H 7 V -5 A 7 7 0 0 1 -7 -5 Z" />
+          <rect x="-1.5" y="-2" width="3" height="5" />
+          <rect x="-6" y="3" width="12" height="2.5" rx="1.2" />
+        </g>
+      )
+    case 'mall':
+      return (
+        <g fill={color}>
+          <path d="M -10 -7 Q -5 -3 0 -7 Q 5 -3 10 -7 L 10 -3 L -10 -3 Z" />
+          <rect x="-8" y="-3" width="16" height="11" />
+          <rect x="-3" y="1" width="6" height="7" fill="#0a1220" />
+        </g>
+      )
+    case 'club':
+      return (
+        <g fill={color}>
+          <path d="M -9 -3 L 0 -12 L 9 -3 Z" />
+          <rect x="-9" y="-3" width="18" height="12" />
+          <circle cx="0" cy="2" r="2.6" fill="#0a1220" />
+        </g>
+      )
+    default:
+      return null
+  }
+}
+
+function LakeShape({ stop }) {
+  return (
+    <g transform={`translate(${stop.x}, ${stop.y + 55})`}>
+      <ellipse rx="78" ry="46" fill="#2563eb" opacity="0.25" />
+      <ellipse rx="78" ry="46" fill="none" stroke="#60a5fa" strokeWidth="2" opacity="0.55" />
+    </g>
+  )
+}
 
 function RouteLines({ bus }) {
   const n = bus.route.length
@@ -86,6 +152,16 @@ function StopMarkers() {
   ))
 }
 
+function StopBuildings() {
+  return Object.values(STOPS).map((s) =>
+    s.type && s.type !== 'plain' && s.type !== 'lake' ? (
+      <g key={s.key} transform={`translate(${s.x}, ${s.y - 42})`}>
+        <PlaceIcon type={s.type} />
+      </g>
+    ) : null
+  )
+}
+
 function StopLabels() {
   return Object.values(STOPS).map((s) => (
     <text
@@ -97,6 +173,22 @@ function StopLabels() {
     >
       {s.name}
     </text>
+  ))
+}
+
+function Landmarks() {
+  return LANDMARKS.map((l) => (
+    <g key={l.key}>
+      <g transform={`translate(${l.x}, ${l.y - 30})`}>
+        <PlaceIcon type={l.type} color="#5b6a8c" />
+      </g>
+      <g transform={`translate(${l.x}, ${l.y})`}>
+        <circle r="4" fill="#0a1220" stroke="#5b6a8c" strokeWidth="1.6" />
+      </g>
+      <text x={l.x} y={l.y + 18} className="city-label" textAnchor="middle">
+        {l.name}
+      </text>
+    </g>
   ))
 }
 
@@ -136,11 +228,15 @@ export default function MapView() {
             <path d="M 595 0 Q 560 446 581 1000" />
           </g>
 
+          <LakeShape stop={STOPS.lakePlaza} />
+
           {BUSES.map((bus) => (
             <RouteLines key={bus.id} bus={bus} />
           ))}
 
+          <Landmarks />
           <StopMarkers />
+          <StopBuildings />
           <StopLabels />
 
           {BUSES.map((bus) => (
