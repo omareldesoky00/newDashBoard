@@ -109,7 +109,17 @@ export default function MapView() {
       </div>
 
       <div className="map-canvas-wrap">
-        <svg viewBox="0 0 700 1000" width="100%" style={{ display: 'block', aspectRatio: '7 / 10' }}>
+        <svg
+          viewBox="0 0 700 1000"
+          style={{
+            display: 'block',
+            aspectRatio: '7 / 10',
+            width: 'auto',
+            height: 'min(62vh, 1220px)',
+            maxWidth: '100%',
+            margin: '0 auto',
+          }}
+        >
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
               <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#152238" strokeWidth="1" />

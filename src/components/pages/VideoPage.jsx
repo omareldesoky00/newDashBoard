@@ -15,15 +15,32 @@ export default function VideoPage({ active }) {
     <div className="video-page">
       <div className="video-frame-wrap">
         {active && (
-          <video
-            key={playKey}
-            className="video-frame"
-            src={VIDEO_SRC}
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
+          <>
+            {/* Landscape source video in a portrait frame: a blurred, filled
+                copy behind fills the frame, while the sharp copy in front
+                stays uncropped so nothing in the footage gets cut off. */}
+            <video
+              key={`bg-${playKey}`}
+              className="video-frame-bg"
+              src={VIDEO_SRC}
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-hidden="true"
+            />
+            <div className="video-frame-fg">
+              <video
+                key={playKey}
+                className="video-frame"
+                src={VIDEO_SRC}
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

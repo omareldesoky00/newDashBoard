@@ -17,7 +17,7 @@ export default function WeatherPanel() {
       {data && (
         <>
           <div className="weather-temp">{data.icon} {data.temp}°</div>
-          <div className="weather-loc">Cairo, Egypt</div>
+          <div className="weather-loc">Cairo, Egypt · Feels like {data.feelsLike}° · H:{data.high}° L:{data.low}°</div>
 
           <div className="weather-rows">
             <div className="weather-row">
@@ -26,7 +26,23 @@ export default function WeatherPanel() {
             </div>
             <div className="weather-row">
               <span>🌬️ Wind</span>
-              <span className="val">{data.wind} km/h</span>
+              <span className="val">{data.wind} km/h {data.windDir}</span>
+            </div>
+            <div className="weather-row">
+              <span>☁️ Cloud cover</span>
+              <span className="val">{data.cloudCover}%</span>
+            </div>
+            <div className="weather-row">
+              <span>🧭 Pressure</span>
+              <span className="val">{data.pressure} hPa</span>
+            </div>
+            <div className="weather-row">
+              <span>🔆 UV index</span>
+              <span className="val">{data.uvIndex}</span>
+            </div>
+            <div className="weather-row">
+              <span>🌅 Sunrise / 🌇 Sunset</span>
+              <span className="val">{data.sunrise} / {data.sunset}</span>
             </div>
           </div>
 

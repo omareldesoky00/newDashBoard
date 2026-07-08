@@ -54,6 +54,28 @@ export const BUSES = [
     bend: [-84, 54, -42, 72],
     phaseOffsetSec: 60,
   },
+  {
+    id: '104',
+    label: 'Bus 104',
+    driver: 'Sara Youssef',
+    color: '#a855f7',
+    route: ['clubhouse', 'lakePlaza', 'residentialB'],
+    waitSec: [3 * 60, 3 * 60, 2 * 60],
+    travelSec: [8 * 60, 10 * 60, 7 * 60],
+    bend: [56, -64, 40],
+    phaseOffsetSec: 200,
+  },
+  {
+    id: '105',
+    label: 'Bus 105',
+    driver: 'Khaled Nour',
+    color: '#06b6d4',
+    route: ['schoolZone', 'centralSquare', 'sportsClub'],
+    waitSec: [2 * 60, 3 * 60, 4 * 60],
+    travelSec: [6 * 60, 5 * 60, 8 * 60],
+    bend: [-52, 60, -44],
+    phaseOffsetSec: 90,
+  },
 ]
 
 // Flattens one bus's config into an ordered, looping list of legs:
