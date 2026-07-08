@@ -130,7 +130,7 @@ body {
 .main-grid {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 15px;
 }
 
 /* ---------- Route panel ---------- */
@@ -511,7 +511,7 @@ body {
 
 /* ---------- Arrivals board ---------- */
 .arrivals-main { display: flex; flex-direction: column; }
-.arrivals-list { display: flex; flex-direction: column; gap: 12px; }
+.arrivals-list { display: flex; flex-direction: column; gap: 9px; }
 
 .arrival-row {
   display: flex;
@@ -521,7 +521,7 @@ body {
   background: var(--panel-soft);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 10px 16px;
 }
 .arrival-left { display: flex; align-items: center; gap: 12px; }
 .arrival-badge {

@@ -1,12 +1,12 @@
-import { STOPS, LANDMARKS, BUSES } from '../data/compound.js'
+import { STOPS, BUSES, legBend } from '../data/compound.js'
 import { legPathD } from '../utils/curve.js'
 import { useBusSchedule } from '../hooks/useBusSchedule.js'
 import { fmtClock } from '../utils/curve.js'
 import { BUS_ICON_PATH } from './icons/BusIcon.jsx'
 
-// Small line-art glyphs so stops/landmarks read as actual places
-// (a gate, a clubhouse, a school...) instead of bare dots on a diagram.
-function PlaceIcon({ type, color = '#9fb0d1' }) {
+// Small line-art glyphs so stops read as actual places (a gate, a
+// clubhouse, a school...) instead of bare dots on a diagram.
+function PlaceIcon({ type, color = '#dde5f7' }) {
   switch (type) {
     case 'gate':
       return (
@@ -26,10 +26,13 @@ function PlaceIcon({ type, color = '#9fb0d1' }) {
     case 'school':
       return (
         <g fill={color}>
-          <path d="M -9 -1 L 0 -10 L 9 -1 Z" />
-          <rect x="-8" y="-1" width="16" height="10" />
-          <rect x="0.5" y="-15" width="2.5" height="6" />
-          <path d="M 3 -15 L 9 -12.5 L 3 -10 Z" />
+          <path d="M -11 -2 L 0 -13 L 11 -2 Z" />
+          <rect x="-10" y="-2" width="20" height="13" />
+          <rect x="-7" y="1" width="4" height="4" fill="#0a1220" />
+          <rect x="-2" y="1" width="4" height="4" fill="#0a1220" />
+          <rect x="3" y="1" width="4" height="4" fill="#0a1220" />
+          <rect x="-0.9" y="-16" width="1.8" height="4.5" />
+          <path d="M 0.9 -16 L 6 -14 L 0.9 -12 Z" />
         </g>
       )
     case 'sports':
@@ -56,6 +59,15 @@ function PlaceIcon({ type, color = '#9fb0d1' }) {
           <circle cx="0" cy="2" r="2.6" fill="#0a1220" />
         </g>
       )
+    case 'hospital':
+      return (
+        <g>
+          <path d="M -9 -2 L 0 -10 L 9 -2 Z" fill={color} />
+          <rect x="-9" y="-2" width="18" height="12" fill={color} />
+          <rect x="-1.3" y="-8" width="2.6" height="8" fill="#ef4444" />
+          <rect x="-4.3" y="-5.3" width="8.6" height="2.6" fill="#ef4444" />
+        </g>
+      )
     default:
       return null
   }
@@ -77,7 +89,7 @@ function RouteLines({ bus }) {
       {bus.route.map((stopKey, i) => {
         const from = STOPS[stopKey]
         const to = STOPS[bus.route[(i + 1) % n]]
-        const d = legPathD(from, to, bus.bend[i])
+        const d = legPathD(from, to, legBend(bus, i))
         return (
           <g key={`${bus.id}-${i}`}>
             {/* Dark casing gives the lane contrast against the grid, like a real road */}
@@ -155,8 +167,11 @@ function StopMarkers() {
 function StopBuildings() {
   return Object.values(STOPS).map((s) =>
     s.type && s.type !== 'plain' && s.type !== 'lake' ? (
-      <g key={s.key} transform={`translate(${s.x}, ${s.y - 42})`}>
-        <PlaceIcon type={s.type} />
+      <g key={s.key} transform={`translate(${s.x}, ${s.y - 46})`}>
+        <circle r="19" fill="#0a1220" stroke="#26385c" strokeWidth="1.5" opacity="0.92" />
+        <g transform="scale(1.35)">
+          <PlaceIcon type={s.type} />
+        </g>
       </g>
     ) : null
   )
@@ -173,22 +188,6 @@ function StopLabels() {
     >
       {s.name}
     </text>
-  ))
-}
-
-function Landmarks() {
-  return LANDMARKS.map((l) => (
-    <g key={l.key}>
-      <g transform={`translate(${l.x}, ${l.y - 30})`}>
-        <PlaceIcon type={l.type} color="#5b6a8c" />
-      </g>
-      <g transform={`translate(${l.x}, ${l.y})`}>
-        <circle r="4" fill="#0a1220" stroke="#5b6a8c" strokeWidth="1.6" />
-      </g>
-      <text x={l.x} y={l.y + 18} className="city-label" textAnchor="middle">
-        {l.name}
-      </text>
-    </g>
   ))
 }
 
@@ -234,7 +233,6 @@ export default function MapView() {
             <RouteLines key={bus.id} bus={bus} />
           ))}
 
-          <Landmarks />
           <StopMarkers />
           <StopBuildings />
           <StopLabels />
