@@ -293,6 +293,7 @@ body {
 
 /* ---------- Side panels (weather/time) ---------- */
 .side-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.clock-column { display: flex; flex-direction: column; gap: 18px; }
 .panel-title {
   display: flex;
   align-items: center;

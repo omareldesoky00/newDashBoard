@@ -68,18 +68,16 @@ function PlaceIcon({ type, color = '#dde5f7' }) {
           <rect x="-4.3" y="-5.3" width="8.6" height="2.6" fill="#ef4444" />
         </g>
       )
+    case 'lake':
+      return (
+        <g fill="none" stroke="#60a5fa" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M -10 -3 Q -5 -8 0 -3 Q 5 2 10 -3" />
+          <path d="M -10 4 Q -5 -1 0 4 Q 5 9 10 4" />
+        </g>
+      )
     default:
       return null
   }
-}
-
-function LakeShape({ stop }) {
-  return (
-    <g transform={`translate(${stop.x}, ${stop.y + 55})`}>
-      <ellipse rx="78" ry="46" fill="#2563eb" opacity="0.25" />
-      <ellipse rx="78" ry="46" fill="none" stroke="#60a5fa" strokeWidth="2" opacity="0.55" />
-    </g>
-  )
 }
 
 function RouteLines({ bus }) {
@@ -166,7 +164,7 @@ function StopMarkers() {
 
 function StopBuildings() {
   return Object.values(STOPS).map((s) =>
-    s.type && s.type !== 'plain' && s.type !== 'lake' ? (
+    s.type && s.type !== 'plain' ? (
       <g key={s.key} transform={`translate(${s.x}, ${s.y - 46})`}>
         <circle r="19" fill="#0a1220" stroke="#26385c" strokeWidth="1.5" opacity="0.92" />
         <g transform="scale(1.35)">
@@ -226,8 +224,6 @@ export default function MapView() {
             <path d="M 105 0 Q 140 446 126 1000" />
             <path d="M 595 0 Q 560 446 581 1000" />
           </g>
-
-          <LakeShape stop={STOPS.lakePlaza} />
 
           {BUSES.map((bus) => (
             <RouteLines key={bus.id} bus={bus} />
