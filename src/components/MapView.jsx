@@ -91,16 +91,16 @@ function RouteLines({ bus }) {
         return (
           <g key={`${bus.id}-${i}`}>
             {/* Dark casing gives the lane contrast against the grid, like a real road */}
-            <path d={d} fill="none" stroke="#03060d" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+            <path d={d} fill="none" stroke="#03060d" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
             <path
               d={d}
               fill="none"
               stroke={bus.color}
-              strokeWidth="5"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
               className="route-glow"
-              style={{ filter: `drop-shadow(0 0 7px ${bus.color}cc)` }}
+              style={{ filter: `drop-shadow(0 0 3px ${bus.color}aa)` }}
             />
           </g>
         )

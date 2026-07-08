@@ -12,8 +12,8 @@
 // because the offset is computed relative to a canonical (sorted)
 // direction and flipped for whichever bus runs it backwards.
 
-const LANE_GAP = 58
-const SOLO_BOW = 46
+const LANE_GAP = 80
+const SOLO_BOW = 55
 
 export function computeLaneOffsets(buses) {
   const groups = {}
