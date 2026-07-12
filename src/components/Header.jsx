@@ -1,8 +1,10 @@
 import { useCairoClock } from '../hooks/useCairoClock.js'
+import { useWeather } from '../hooks/useWeather.js'
 import BusIcon from './icons/BusIcon.jsx'
 
 export default function Header() {
   const { time, date } = useCairoClock()
+  const { data: weather } = useWeather()
 
   return (
     <div className="card header">
@@ -14,6 +16,7 @@ export default function Header() {
         </div>
       </div>
       <div className="header-right">
+        {weather && <span className="header-weather-chip">{weather.icon} {weather.temp}°</span>}
         <span>{date}</span>
         <span className="clock-big">{time}</span>
         <span className="live-dot"><span className="dot" /> Live</span>

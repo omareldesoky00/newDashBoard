@@ -215,7 +215,7 @@ export default function MapView() {
             display: 'block',
             aspectRatio: '7 / 10',
             width: 'auto',
-            height: 'min(62vh, 1220px)',
+            height: 'min(29vh, 560px)',
             maxWidth: '100%',
             margin: '0 auto',
           }}
