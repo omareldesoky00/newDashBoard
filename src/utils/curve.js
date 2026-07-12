@@ -34,6 +34,36 @@ export function legPathD(a, b, bend = 0) {
   return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`
 }
 
+// Routes a leg like an actual street: straight out from `a`, a
+// rounded right-angle turn, then straight into `b` — instead of one
+// smooth diagonal curve. `offset` shifts the turn sideways, which is
+// how parallel lines sharing the same road get visual daylight
+// between them (see laneOffsets.js).
+function elbowGeometry(a, b, offset = 0, radius = 36) {
+  const corner = { x: a.x + offset, y: b.y }
+  const vDir = Math.sign(corner.y - a.y) || 1
+  const hDir = Math.sign(b.x - corner.x) || 1
+  const r = Math.min(radius, Math.abs(corner.y - a.y) / 2, Math.abs(b.x - corner.x) / 2)
+  const roundStart = { x: corner.x, y: corner.y - vDir * r }
+  const roundEnd = { x: corner.x + hDir * r, y: corner.y }
+  return { corner, roundStart, roundEnd }
+}
+
+export function elbowPoint(a, b, t, offset = 0) {
+  const { corner } = elbowGeometry(a, b, offset)
+  if (t <= 0.5) {
+    const u = t / 0.5
+    return { x: a.x + (corner.x - a.x) * u, y: a.y + (corner.y - a.y) * u }
+  }
+  const u = (t - 0.5) / 0.5
+  return { x: corner.x + (b.x - corner.x) * u, y: corner.y + (b.y - corner.y) * u }
+}
+
+export function elbowPathD(a, b, offset = 0) {
+  const { corner, roundStart, roundEnd } = elbowGeometry(a, b, offset)
+  return `M ${a.x} ${a.y} L ${roundStart.x} ${roundStart.y} Q ${corner.x} ${corner.y} ${roundEnd.x} ${roundEnd.y} L ${b.x} ${b.y}`
+}
+
 export function fmtClock(totalSeconds) {
   const s = Math.max(0, Math.round(totalSeconds))
   const m = Math.floor(s / 60)

@@ -1,5 +1,5 @@
 import { STOPS, BUSES, legBend } from '../data/compound.js'
-import { legPathD } from '../utils/curve.js'
+import { elbowPathD } from '../utils/curve.js'
 import { useBusSchedule } from '../hooks/useBusSchedule.js'
 import { fmtClock } from '../utils/curve.js'
 
@@ -104,12 +104,13 @@ function CityBackground() {
         )}
       </g>
 
-      {/* Park, with a small pond */}
-      <g transform="translate(370, 250)">
-        <ellipse rx="88" ry="66" fill="#14532d" opacity="0.6" />
-        <ellipse rx="88" ry="66" fill="none" stroke="#4ade80" strokeWidth="1.8" opacity="0.55" />
-        <ellipse cx="15" cy="10" rx="28" ry="16" fill="#1d4ed8" opacity="0.5" />
-        <text y="-30" textAnchor="middle" fill="#86efac" fontSize="12" fontWeight="700" opacity="0.85">City Park</text>
+      {/* Park, with a small pond — tucked to the side, clear of where
+          routes bundle together near the hub */}
+      <g transform="translate(600, 570)">
+        <ellipse rx="65" ry="52" fill="#14532d" opacity="0.6" />
+        <ellipse rx="65" ry="52" fill="none" stroke="#4ade80" strokeWidth="1.8" opacity="0.55" />
+        <ellipse cx="10" cy="8" rx="22" ry="13" fill="#1d4ed8" opacity="0.5" />
+        <text y="-22" textAnchor="middle" fill="#86efac" fontSize="12" fontWeight="700" opacity="0.85">City Park</text>
       </g>
 
       <text x="30" y="500" fill="#3a4d78" fontSize="11" opacity="0.9" transform="rotate(-90 30 500)">Ring Road</text>
@@ -121,12 +122,20 @@ function CityBackground() {
 
 function RouteLines({ bus }) {
   const n = bus.route.length
+  const seenEdges = new Set()
   return (
     <>
       {bus.route.map((stopKey, i) => {
+        const nextKey = bus.route[(i + 1) % n]
+        // A bus's return trip over the same road it just came from is
+        // visually the same line — draw it once, not twice.
+        const edgeKey = [stopKey, nextKey].sort().join('|')
+        if (seenEdges.has(edgeKey)) return null
+        seenEdges.add(edgeKey)
+
         const from = STOPS[stopKey]
-        const to = STOPS[bus.route[(i + 1) % n]]
-        const d = legPathD(from, to, legBend(bus, i))
+        const to = STOPS[nextKey]
+        const d = elbowPathD(from, to, legBend(bus, i))
         return (
           <g key={`${bus.id}-${i}`}>
             {/* Dark casing gives the lane contrast against the grid, like a real road */}
@@ -158,21 +167,47 @@ function RouteLines({ bus }) {
   )
 }
 
-// A small side-view toy bus, always drawn upright — matches the
-// reference board's consistent bus icons rather than trying to rotate
-// a 2D side-view glyph to face arbitrary directions (which just looks
-// like a sliver from some angles).
+// Detailed front-quarter-view bus (source: user-provided artwork,
+// originally a 900x400 viewBox), recolored per-route on the roof and
+// side markers so each bus still reads by its line color. Always
+// drawn upright — a 2D illustration like this only reads correctly
+// from its intended angle, so it doesn't rotate to face travel
+// direction (matches how the reference board's icons are consistent
+// everywhere on the map).
 function BusGlyph({ color }) {
   return (
-    <g style={{ filter: 'drop-shadow(0 2px 4px #000a)' }}>
-      <rect x="-13" y="-7" width="26" height="13" rx="3" fill="#eef2fa" stroke="#0b1220" strokeWidth="1.1" />
-      <rect x="-13" y="-7" width="26" height="4.5" rx="2" fill={color} />
-      <rect x="-10" y="-1.6" width="5" height="4.6" rx="0.8" fill="#38bdf8" />
-      <rect x="-3.5" y="-1.6" width="5" height="4.6" rx="0.8" fill="#38bdf8" />
-      <rect x="3" y="-1.6" width="5" height="4.6" rx="0.8" fill="#38bdf8" />
-      <circle cx="-7.5" cy="6.3" r="2.4" fill="#0b1220" />
-      <circle cx="7.5" cy="6.3" r="2.4" fill="#0b1220" />
-      <circle cx="12" cy="-1" r="1.1" fill="#fde68a" />
+    <g transform="scale(0.0385) translate(-450, -200)" style={{ filter: 'drop-shadow(0 2px 4px #000a)' }}>
+      <rect x="70" y="55" width="760" height="250" rx="18" fill="#ffffff" stroke="#222" strokeWidth="4" />
+      <rect x="120" y="35" width="650" height="30" rx="12" fill={color} />
+      <path d="M70 90 C70 70 90 55 115 55 L115 305 C90 305 70 285 70 265 Z" fill="#1f1f1f" />
+      <path d="M90 80 C90 70 100 65 112 65 L112 292 L90 292 Z" fill="#0f1418" />
+      <rect x="140" y="75" width="90" height="90" fill="#23292f" />
+      <rect x="235" y="75" width="90" height="90" fill="#23292f" />
+      <rect x="330" y="75" width="90" height="90" fill="#23292f" />
+      <rect x="510" y="75" width="90" height="90" fill="#23292f" />
+      <rect x="605" y="75" width="90" height="90" fill="#23292f" />
+      <rect x="700" y="75" width="95" height="90" fill="#23292f" />
+      <g stroke="#444" strokeWidth="2">
+        <line x1="185" y1="75" x2="185" y2="165" />
+        <line x1="280" y1="75" x2="280" y2="165" />
+        <line x1="375" y1="75" x2="375" y2="165" />
+        <line x1="555" y1="75" x2="555" y2="165" />
+        <line x1="650" y1="75" x2="650" y2="165" />
+        <line x1="747" y1="75" x2="747" y2="165" />
+      </g>
+      <rect x="420" y="70" width="70" height="185" fill="#15191d" stroke="#333" strokeWidth="2" />
+      <line x1="455" y1="70" x2="455" y2="255" stroke="#555" strokeWidth="2" />
+      <rect x="705" y="200" width="70" height="75" fill="#f3f3f3" stroke="#999" />
+      <circle cx="230" cy="275" r="42" fill="#2b2b2b" />
+      <circle cx="230" cy="275" r="28" fill="#cfd2d6" />
+      <circle cx="230" cy="275" r="12" fill="#888" />
+      <circle cx="640" cy="275" r="42" fill="#2b2b2b" />
+      <circle cx="640" cy="275" r="28" fill="#cfd2d6" />
+      <circle cx="640" cy="275" r="12" fill="#888" />
+      <ellipse cx="83" cy="215" rx="10" ry="18" fill="#f5f5f5" />
+      <ellipse cx="86" cy="235" rx="6" ry="6" fill="#ffb300" />
+      <rect x="165" y="205" width="10" height="10" rx="2" fill={color} />
+      <rect x="560" y="205" width="10" height="10" rx="2" fill={color} />
     </g>
   )
 }
@@ -187,9 +222,7 @@ function BusMarker({ bus }) {
       {isWaiting && (
         <circle r="20" fill={bus.color} opacity="0.16" className="wait-pulse" />
       )}
-      <g transform="scale(1.5)">
-        <BusGlyph color={bus.color} />
-      </g>
+      <BusGlyph color={bus.color} />
 
       {/* Countdown bubble — stays upright regardless of bus heading */}
       <g transform="translate(0,-32)">
