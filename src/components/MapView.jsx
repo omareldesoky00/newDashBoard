@@ -2,7 +2,6 @@ import { STOPS, BUSES, legBend } from '../data/compound.js'
 import { legPathD } from '../utils/curve.js'
 import { useBusSchedule } from '../hooks/useBusSchedule.js'
 import { fmtClock } from '../utils/curve.js'
-import { BUS_ICON_PATH } from './icons/BusIcon.jsx'
 
 const HUB_KEY = 'centralStation'
 
@@ -61,6 +60,43 @@ function PlaceIcon({ type, color = '#dde5f7' }) {
   }
 }
 
+// A loose street grid + a couple of city blocks + a park, so the map
+// reads like an actual place instead of a bare diagram on a dot-grid.
+function CityBackground() {
+  return (
+    <>
+      <g stroke="#1b2942" strokeWidth="3" fill="none" opacity="0.65">
+        <path d="M 0 120 Q 350 90 700 130" />
+        <path d="M 0 300 Q 350 340 700 290" />
+        <path d="M 0 700 Q 350 730 700 680" />
+        <path d="M 0 900 Q 350 870 700 910" />
+        <path d="M 90 0 Q 60 500 100 1000" />
+        <path d="M 600 0 Q 630 500 580 1000" />
+      </g>
+
+      {/* City block texture */}
+      <g fill="#101c30" opacity="0.5">
+        <rect x="120" y="150" width="90" height="60" rx="6" />
+        <rect x="480" y="150" width="90" height="55" rx="6" />
+        <rect x="120" y="750" width="90" height="60" rx="6" />
+        <rect x="480" y="740" width="90" height="60" rx="6" />
+        <rect x="30" y="420" width="70" height="60" rx="6" />
+        <rect x="600" y="430" width="70" height="60" rx="6" />
+      </g>
+
+      {/* Park */}
+      <g transform="translate(350, 275)">
+        <ellipse rx="72" ry="54" fill="#14532d" opacity="0.55" />
+        <ellipse rx="72" ry="54" fill="none" stroke="#4ade80" strokeWidth="1.6" opacity="0.5" />
+        <text y="5" textAnchor="middle" fill="#86efac" fontSize="11" opacity="0.8">City Park</text>
+      </g>
+
+      <text x="52" y="640" fill="#33456c" fontSize="11" opacity="0.85" transform="rotate(-90 52 640)">Ring Road</text>
+      <text x="470" y="70" fill="#33456c" fontSize="11" opacity="0.85">Noor Blvd</text>
+    </>
+  )
+}
+
 function RouteLines({ bus }) {
   const n = bus.route.length
   return (
@@ -100,6 +136,23 @@ function RouteLines({ bus }) {
   )
 }
 
+// A small side-view bus, rotated to face the direction it's actually
+// traveling (or the direction it's about to depart, while parked).
+function BusGlyph({ color }) {
+  return (
+    <g style={{ filter: 'drop-shadow(0 2px 4px #000a)' }}>
+      <rect x="-13" y="-7" width="26" height="13" rx="3" fill="#eef2fa" stroke="#0b1220" strokeWidth="1.1" />
+      <rect x="-13" y="-7" width="26" height="4.5" rx="2" fill={color} />
+      <rect x="-10" y="-1.6" width="5" height="4.6" rx="0.8" fill="#38bdf8" />
+      <rect x="-3.5" y="-1.6" width="5" height="4.6" rx="0.8" fill="#38bdf8" />
+      <rect x="3" y="-1.6" width="5" height="4.6" rx="0.8" fill="#38bdf8" />
+      <circle cx="-7.5" cy="6.3" r="2.4" fill="#0b1220" />
+      <circle cx="7.5" cy="6.3" r="2.4" fill="#0b1220" />
+      <circle cx="12" cy="-1" r="1.1" fill="#fde68a" />
+    </g>
+  )
+}
+
 function BusMarker({ bus }) {
   const state = useBusSchedule(bus)
   const { x, y } = state.position
@@ -108,25 +161,14 @@ function BusMarker({ bus }) {
   return (
     <g transform={`translate(${x}, ${y})`}>
       {isWaiting && (
-        <circle r="22" fill={bus.color} opacity="0.16" className="wait-pulse" />
+        <circle r="20" fill={bus.color} opacity="0.16" className="wait-pulse" />
       )}
-      <rect
-        x="-17"
-        y="-17"
-        width="34"
-        height="34"
-        rx="11"
-        fill="#0b1220"
-        stroke={bus.color}
-        strokeWidth="3"
-        style={{ filter: `drop-shadow(0 2px 6px #000a)` }}
-      />
-      <g transform="translate(-11, -11)">
-        <path d={BUS_ICON_PATH} transform="scale(0.92)" fill="#eef2fa" />
+      <g transform={`rotate(${state.heading})`}>
+        <BusGlyph color={bus.color} />
       </g>
 
-      {/* Countdown bubble */}
-      <g transform="translate(0,-32)">
+      {/* Countdown bubble — stays upright regardless of bus heading */}
+      <g transform="translate(0,-26)">
         <rect
           x={-24}
           y={-13}
@@ -215,7 +257,7 @@ export default function MapView() {
             display: 'block',
             aspectRatio: '7 / 10',
             width: 'auto',
-            height: 'min(29vh, 560px)',
+            height: 'min(32vh, 620px)',
             maxWidth: '100%',
             margin: '0 auto',
           }}
@@ -228,13 +270,7 @@ export default function MapView() {
           <rect width="700" height="1000" fill="#0a1220" />
           <rect width="700" height="1000" fill="url(#grid)" />
 
-          {/* Faint background boulevards linking the hub to each district, for flavor */}
-          <g stroke="#223351" strokeWidth="3" fill="none" opacity="0.5">
-            <path d="M 350 500 L 140 200" />
-            <path d="M 350 500 L 590 220" />
-            <path d="M 350 500 L 590 810" />
-            <path d="M 350 500 L 140 810" />
-          </g>
+          <CityBackground />
 
           {BUSES.map((bus) => (
             <RouteLines key={bus.id} bus={bus} />
