@@ -1,5 +1,5 @@
 import { STOPS, BUSES, legBend } from '../data/compound.js'
-import { elbowPathD } from '../utils/curve.js'
+import { spiderPathD } from '../utils/curve.js'
 import { useBusSchedule } from '../hooks/useBusSchedule.js'
 import { fmtClock } from '../utils/curve.js'
 
@@ -135,7 +135,7 @@ function RouteLines({ bus }) {
 
         const from = STOPS[stopKey]
         const to = STOPS[nextKey]
-        const d = elbowPathD(from, to, legBend(bus, i))
+        const d = spiderPathD(from, to, legBend(bus, i))
         return (
           <g key={`${bus.id}-${i}`}>
             {/* Dark casing gives the lane contrast against the grid, like a real road */}

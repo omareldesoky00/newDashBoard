@@ -1,67 +1,57 @@
 // Small helper so the drawn route line and the moving bus marker
-// always agree on exactly the same curve.
+// always agree on exactly the same path.
 
-// Point at t (0..1) along a quadratic bezier from a to b, bowed
-// sideways by `bend` pixels (perpendicular to the straight line a->b).
-export function curvedPoint(a, b, t, bend = 0) {
-  const mx = (a.x + b.x) / 2
-  const my = (a.y + b.y) / 2
+// Routes a leg like a spider's leg / circuit trace: a few straight
+// segments with rounded right-angle turns, always moving monotonically
+// toward the destination in both x and y — which guarantees it never
+// wanders into a neighboring route's quadrant. `offset` nudges the
+// middle of the path sideways, for the rare case two buses share a
+// road (see laneOffsets.js); with one bus per district it's usually 0.
+function spiderWaypoints(a, b, offset = 0) {
   const dx = b.x - a.x
   const dy = b.y - a.y
-  const len = Math.hypot(dx, dy) || 1
-  const nx = -dy / len
-  const ny = dx / len
-  const cx = mx + nx * bend
-  const cy = my + ny * bend
-
-  const it = 1 - t
-  const x = it * it * a.x + 2 * it * t * cx + t * t * b.x
-  const y = it * it * a.y + 2 * it * t * cy + t * t * b.y
-  return { x, y }
+  const p1 = { x: a.x, y: a.y + dy * 0.35 }
+  const p2 = { x: a.x + dx * 0.55 + offset, y: p1.y }
+  const p3 = { x: p2.x, y: a.y + dy * 0.75 }
+  return [a, p1, p2, p3, b]
 }
 
-// SVG path 'd' for the same curve, for drawing the route line.
-export function legPathD(a, b, bend = 0) {
-  const mx = (a.x + b.x) / 2
-  const my = (a.y + b.y) / 2
-  const dx = b.x - a.x
-  const dy = b.y - a.y
-  const len = Math.hypot(dx, dy) || 1
-  const nx = -dy / len
-  const ny = dx / len
-  const cx = mx + nx * bend
-  const cy = my + ny * bend
-  return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`
-}
-
-// Routes a leg like an actual street: straight out from `a`, a
-// rounded right-angle turn, then straight into `b` — instead of one
-// smooth diagonal curve. `offset` shifts the turn sideways, which is
-// how parallel lines sharing the same road get visual daylight
-// between them (see laneOffsets.js).
-function elbowGeometry(a, b, offset = 0, radius = 36) {
-  const corner = { x: a.x + offset, y: b.y }
-  const vDir = Math.sign(corner.y - a.y) || 1
-  const hDir = Math.sign(b.x - corner.x) || 1
-  const r = Math.min(radius, Math.abs(corner.y - a.y) / 2, Math.abs(b.x - corner.x) / 2)
-  const roundStart = { x: corner.x, y: corner.y - vDir * r }
-  const roundEnd = { x: corner.x + hDir * r, y: corner.y }
-  return { corner, roundStart, roundEnd }
-}
-
-export function elbowPoint(a, b, t, offset = 0) {
-  const { corner } = elbowGeometry(a, b, offset)
-  if (t <= 0.5) {
-    const u = t / 0.5
-    return { x: a.x + (corner.x - a.x) * u, y: a.y + (corner.y - a.y) * u }
+function roundedPolylineD(points, radius = 26) {
+  let d = `M ${points[0].x} ${points[0].y}`
+  for (let i = 1; i < points.length - 1; i++) {
+    const prev = points[i - 1]
+    const curr = points[i]
+    const next = points[i + 1]
+    const toPrev = { x: prev.x - curr.x, y: prev.y - curr.y }
+    const toNext = { x: next.x - curr.x, y: next.y - curr.y }
+    const lenPrev = Math.hypot(toPrev.x, toPrev.y) || 1
+    const lenNext = Math.hypot(toNext.x, toNext.y) || 1
+    const r = Math.min(radius, lenPrev / 2, lenNext / 2)
+    const p1 = { x: curr.x + (toPrev.x / lenPrev) * r, y: curr.y + (toPrev.y / lenPrev) * r }
+    const p2 = { x: curr.x + (toNext.x / lenNext) * r, y: curr.y + (toNext.y / lenNext) * r }
+    d += ` L ${p1.x} ${p1.y} Q ${curr.x} ${curr.y} ${p2.x} ${p2.y}`
   }
-  const u = (t - 0.5) / 0.5
-  return { x: corner.x + (b.x - corner.x) * u, y: corner.y + (b.y - corner.y) * u }
+  const last = points[points.length - 1]
+  d += ` L ${last.x} ${last.y}`
+  return d
 }
 
-export function elbowPathD(a, b, offset = 0) {
-  const { corner, roundStart, roundEnd } = elbowGeometry(a, b, offset)
-  return `M ${a.x} ${a.y} L ${roundStart.x} ${roundStart.y} Q ${corner.x} ${corner.y} ${roundEnd.x} ${roundEnd.y} L ${b.x} ${b.y}`
+function polylinePointAt(points, t) {
+  const segCount = points.length - 1
+  const segT = Math.max(0, Math.min(1, t)) * segCount
+  const segIndex = Math.min(segCount - 1, Math.floor(segT))
+  const u = segT - segIndex
+  const p0 = points[segIndex]
+  const p1 = points[segIndex + 1]
+  return { x: p0.x + (p1.x - p0.x) * u, y: p0.y + (p1.y - p0.y) * u }
+}
+
+export function spiderPoint(a, b, t, offset = 0) {
+  return polylinePointAt(spiderWaypoints(a, b, offset), t)
+}
+
+export function spiderPathD(a, b, offset = 0) {
+  return roundedPolylineD(spiderWaypoints(a, b, offset))
 }
 
 export function fmtClock(totalSeconds) {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { STOPS, buildLegs } from '../data/compound.js'
-import { elbowPoint } from '../utils/curve.js'
+import { spiderPoint } from '../utils/curve.js'
 
 // A single fixed reference point in time, shared by every bus, so that
 // reloading the page keeps everyone roughly in sync instead of each
@@ -43,7 +43,7 @@ export function computeBusState(bus, nowMs = Date.now()) {
   } else {
     const from = STOPS[current.from]
     const to = STOPS[current.to]
-    position = elbowPoint(from, to, progress, current.bend || 0)
+    position = spiderPoint(from, to, progress, current.bend || 0)
     stopName = from.name
     nextStopName = to.name
   }
