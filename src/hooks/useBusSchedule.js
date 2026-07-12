@@ -32,30 +32,23 @@ export function computeBusState(bus, nowMs = Date.now()) {
   const remaining = current.durationSec - into
   const progress = current.durationSec > 0 ? into / current.durationSec : 0
 
-  let position, stopName, nextStopName, heading
+  let position, stopName, nextStopName
   if (current.type === 'wait') {
     const stop = STOPS[current.stop]
     position = { x: stop.x, y: stop.y }
     stopName = stop.name
     const idx = legs.indexOf(current)
     const nextMove = legs[(idx + 1) % legs.length]
-    const nextStop = STOPS[nextMove.to]
-    nextStopName = nextStop?.name
-    // Parked facing the direction it's about to depart in.
-    heading = nextStop ? Math.atan2(nextStop.y - stop.y, nextStop.x - stop.x) * (180 / Math.PI) : 0
+    nextStopName = STOPS[nextMove.to]?.name
   } else {
     const from = STOPS[current.from]
     const to = STOPS[current.to]
     position = curvedPoint(from, to, progress, current.bend || 0)
     stopName = from.name
     nextStopName = to.name
-    // Tangent of the curve at this point, so the bus icon can rotate
-    // to face the direction it's actually traveling.
-    const ahead = curvedPoint(from, to, Math.min(1, progress + 0.02), current.bend || 0)
-    heading = Math.atan2(ahead.y - position.y, ahead.x - position.x) * (180 / Math.PI)
   }
 
-  return { type: current.type, stopName, nextStopName, remaining, progress, position, heading }
+  return { type: current.type, stopName, nextStopName, remaining, progress, position }
 }
 
 /**

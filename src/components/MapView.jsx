@@ -60,39 +60,61 @@ function PlaceIcon({ type, color = '#dde5f7' }) {
   }
 }
 
-// A loose street grid + a couple of city blocks + a park, so the map
-// reads like an actual place instead of a bare diagram on a dot-grid.
+// A proper dense street grid + city blocks + a park, covering the
+// whole canvas, so the map reads like an actual city instead of a
+// bare diagram with a couple of decorative lines.
+const V_STREETS = [50, 130, 210, 290, 460, 540, 620, 660]
+const H_STREETS = [60, 150, 340, 430, 620, 710, 800, 890, 960]
+const AVENUES_V = [370]
+const AVENUES_H = [230, 540]
+
 function CityBackground() {
   return (
     <>
-      <g stroke="#1b2942" strokeWidth="3" fill="none" opacity="0.65">
-        <path d="M 0 120 Q 350 90 700 130" />
-        <path d="M 0 300 Q 350 340 700 290" />
-        <path d="M 0 700 Q 350 730 700 680" />
-        <path d="M 0 900 Q 350 870 700 910" />
-        <path d="M 90 0 Q 60 500 100 1000" />
-        <path d="M 600 0 Q 630 500 580 1000" />
+      {/* Dense minor streets */}
+      <g stroke="#16233c" strokeWidth="1.4" fill="none" opacity="0.75">
+        {V_STREETS.map((x, i) => (
+          <path key={`v${i}`} d={`M ${x} 0 Q ${x + (i % 2 ? 14 : -14)} 500 ${x} 1000`} />
+        ))}
+        {H_STREETS.map((y, i) => (
+          <path key={`h${i}`} d={`M 0 ${y} Q 350 ${y + (i % 2 ? 12 : -12)} 700 ${y}`} />
+        ))}
       </g>
 
-      {/* City block texture */}
-      <g fill="#101c30" opacity="0.5">
-        <rect x="120" y="150" width="90" height="60" rx="6" />
-        <rect x="480" y="150" width="90" height="55" rx="6" />
-        <rect x="120" y="750" width="90" height="60" rx="6" />
-        <rect x="480" y="740" width="90" height="60" rx="6" />
-        <rect x="30" y="420" width="70" height="60" rx="6" />
-        <rect x="600" y="430" width="70" height="60" rx="6" />
+      {/* Bolder avenues for hierarchy */}
+      <g stroke="#223a63" strokeWidth="3" fill="none" opacity="0.7">
+        {AVENUES_V.map((x, i) => (
+          <path key={`av${i}`} d={`M ${x} 0 Q ${x - 25} 500 ${x} 1000`} />
+        ))}
+        {AVENUES_H.map((y, i) => (
+          <path key={`ah${i}`} d={`M 0 ${y} Q 350 ${y + 20} 700 ${y}`} />
+        ))}
       </g>
 
-      {/* Park */}
-      <g transform="translate(350, 275)">
-        <ellipse rx="72" ry="54" fill="#14532d" opacity="0.55" />
-        <ellipse rx="72" ry="54" fill="none" stroke="#4ade80" strokeWidth="1.6" opacity="0.5" />
-        <text y="5" textAnchor="middle" fill="#86efac" fontSize="11" opacity="0.8">City Park</text>
+      {/* City block texture, checkerboarded across every grid cell */}
+      <g fill="#101c30" opacity="0.55">
+        {V_STREETS.slice(0, -1).map((x, ci) =>
+          H_STREETS.slice(0, -1).map((y, ri) => {
+            if ((ci + ri) % 2 !== 0) return null
+            const w = (V_STREETS[ci + 1] - x) * 0.62
+            const h = (H_STREETS[ri + 1] - y) * 0.62
+            if (w < 18 || h < 18) return null
+            return <rect key={`b${ci}-${ri}`} x={x + 10} y={y + 10} width={w} height={h} rx="5" />
+          })
+        )}
       </g>
 
-      <text x="52" y="640" fill="#33456c" fontSize="11" opacity="0.85" transform="rotate(-90 52 640)">Ring Road</text>
-      <text x="470" y="70" fill="#33456c" fontSize="11" opacity="0.85">Noor Blvd</text>
+      {/* Park, with a small pond */}
+      <g transform="translate(370, 250)">
+        <ellipse rx="88" ry="66" fill="#14532d" opacity="0.6" />
+        <ellipse rx="88" ry="66" fill="none" stroke="#4ade80" strokeWidth="1.8" opacity="0.55" />
+        <ellipse cx="15" cy="10" rx="28" ry="16" fill="#1d4ed8" opacity="0.5" />
+        <text y="-30" textAnchor="middle" fill="#86efac" fontSize="12" fontWeight="700" opacity="0.85">City Park</text>
+      </g>
+
+      <text x="30" y="500" fill="#3a4d78" fontSize="11" opacity="0.9" transform="rotate(-90 30 500)">Ring Road</text>
+      <text x="400" y="45" fill="#3a4d78" fontSize="11" opacity="0.9">Noor Blvd</text>
+      <text x="90" y="945" fill="#3a4d78" fontSize="11" opacity="0.9">Compound St</text>
     </>
   )
 }
@@ -108,25 +130,25 @@ function RouteLines({ bus }) {
         return (
           <g key={`${bus.id}-${i}`}>
             {/* Dark casing gives the lane contrast against the grid, like a real road */}
-            <path d={d} fill="none" stroke="#03060d" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
+            <path d={d} fill="none" stroke="#03060d" strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
             {/* Solid colored lane */}
             <path
               d={d}
               fill="none"
               stroke={bus.color}
-              strokeWidth="3.4"
+              strokeWidth="4.6"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ filter: `drop-shadow(0 0 3px ${bus.color}aa)` }}
+              style={{ filter: `drop-shadow(0 0 4px ${bus.color}cc)` }}
             />
             {/* Beaded overlay, flowing to show direction of travel */}
             <path
               d={d}
               fill="none"
               stroke="#f3f6fc"
-              strokeWidth="3.4"
+              strokeWidth="4.6"
               strokeLinecap="round"
-              opacity="0.8"
+              opacity="0.85"
               className="route-beads"
             />
           </g>
@@ -136,8 +158,10 @@ function RouteLines({ bus }) {
   )
 }
 
-// A small side-view bus, rotated to face the direction it's actually
-// traveling (or the direction it's about to depart, while parked).
+// A small side-view toy bus, always drawn upright — matches the
+// reference board's consistent bus icons rather than trying to rotate
+// a 2D side-view glyph to face arbitrary directions (which just looks
+// like a sliver from some angles).
 function BusGlyph({ color }) {
   return (
     <g style={{ filter: 'drop-shadow(0 2px 4px #000a)' }}>
@@ -163,12 +187,12 @@ function BusMarker({ bus }) {
       {isWaiting && (
         <circle r="20" fill={bus.color} opacity="0.16" className="wait-pulse" />
       )}
-      <g transform={`rotate(${state.heading})`}>
+      <g transform="scale(1.5)">
         <BusGlyph color={bus.color} />
       </g>
 
       {/* Countdown bubble — stays upright regardless of bus heading */}
-      <g transform="translate(0,-26)">
+      <g transform="translate(0,-32)">
         <rect
           x={-24}
           y={-13}
