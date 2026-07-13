@@ -43,7 +43,15 @@ export function computeBusState(bus, nowMs = Date.now()) {
   } else {
     const from = STOPS[current.from]
     const to = STOPS[current.to]
-    position = spiderPoint(from, to, progress, current.bend || 0)
+    // The drawn route line always traces the sorted (canonical) stop
+    // order — reparametrize to that same direction here, otherwise a
+    // bus on its return trip would compute a different zigzag than
+    // the one actually drawn and visibly drift off the line.
+    const isCanonical = current.from < current.to
+    const canA = isCanonical ? from : to
+    const canB = isCanonical ? to : from
+    const t = isCanonical ? progress : 1 - progress
+    position = spiderPoint(canA, canB, t, current.bend || 0)
     stopName = from.name
     nextStopName = to.name
   }

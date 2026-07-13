@@ -128,13 +128,17 @@ function RouteLines({ bus }) {
       {bus.route.map((stopKey, i) => {
         const nextKey = bus.route[(i + 1) % n]
         // A bus's return trip over the same road it just came from is
-        // visually the same line — draw it once, not twice.
-        const edgeKey = [stopKey, nextKey].sort().join('|')
-        if (seenEdges.has(edgeKey)) return null
-        seenEdges.add(edgeKey)
+        // visually the same line — draw it once, not twice. Always use
+        // the sorted (canonical) stop order, matching how the moving
+        // marker reparametrizes its own position — otherwise the two
+        // disagree about which path is being traced and the bus visibly
+        // drifts off the line on its return trip.
+        const [ck1, ck2] = [stopKey, nextKey].sort()
+        if (seenEdges.has(`${ck1}|${ck2}`)) return null
+        seenEdges.add(`${ck1}|${ck2}`)
 
-        const from = STOPS[stopKey]
-        const to = STOPS[nextKey]
+        const from = STOPS[ck1]
+        const to = STOPS[ck2]
         const d = spiderPathD(from, to, legBend(bus, i))
         return (
           <g key={`${bus.id}-${i}`}>

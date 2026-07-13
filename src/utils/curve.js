@@ -1,19 +1,35 @@
 // Small helper so the drawn route line and the moving bus marker
 // always agree on exactly the same path.
 
-// Routes a leg like a spider's leg / circuit trace: a few straight
-// segments with rounded right-angle turns, always moving monotonically
-// toward the destination in both x and y — which guarantees it never
-// wanders into a neighboring route's quadrant. `offset` nudges the
-// middle of the path sideways, for the rare case two buses share a
-// road (see laneOffsets.js); with one bus per district it's usually 0.
+// Fractions of (dx, dy) from `a` toward `b` describing a long,
+// multi-turn "spider leg" / circuit-trace path — several right-angle
+// turns including a small hook-back (steps 5->6 briefly retreat in x
+// before continuing on), instead of one short diagonal hop. The x
+// fractions dip but never leave [0, 1], so the path still can't wander
+// past `a` or `b` into a neighboring route's quadrant.
+const SPIDER_FRACTIONS = [
+  [0, 0],
+  [0, 0.25],
+  [0.35, 0.25],
+  [0.35, 0.5],
+  [0.8, 0.5],
+  [0.8, 0.68],
+  [0.6, 0.68], // hook back — a short u-turn before the final approach
+  [0.6, 0.9],
+  [1, 0.9],
+  [1, 1],
+]
+
+// `offset` nudges the path sideways (tapered to 0 at both endpoints,
+// so it still starts/ends exactly on the stops), for the rare case
+// two buses share a road — see laneOffsets.js.
 function spiderWaypoints(a, b, offset = 0) {
   const dx = b.x - a.x
   const dy = b.y - a.y
-  const p1 = { x: a.x, y: a.y + dy * 0.35 }
-  const p2 = { x: a.x + dx * 0.55 + offset, y: p1.y }
-  const p3 = { x: p2.x, y: a.y + dy * 0.75 }
-  return [a, p1, p2, p3, b]
+  return SPIDER_FRACTIONS.map(([fx, fy]) => ({
+    x: a.x + dx * fx + offset * Math.sin(fx * Math.PI),
+    y: a.y + dy * fy,
+  }))
 }
 
 function roundedPolylineD(points, radius = 26) {
