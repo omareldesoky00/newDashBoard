@@ -10,7 +10,7 @@ export default function App() {
       <Header />
       <SwipeContainer
         pages={[<MapPage key="map" />, <ArrivalsPage key="arrivals" />, <VideoPage key="video" />]}
-        autoMs={120000}
+        durations={[10000, 10000, 20000]}
       />
     </div>
   )
